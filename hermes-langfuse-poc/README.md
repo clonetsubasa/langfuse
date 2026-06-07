@@ -30,7 +30,10 @@ docker restart hermes
 
 PoC plugin は `/Users/tsubasaclone/.hermes/plugins/observability/langfuse` にあります。再適用用のコピーは `hermes-langfuse-poc/runtime-overrides/plugins/observability/langfuse` に保存しています。
 
-Slack user/channel/thread metadata を plugin hook に渡すため、実行中の Hermes container では `/opt/hermes/run_agent.py` に `hermes-langfuse-poc/runtime-overrides/patches/hermes-run-agent-hook-metadata.patch` 相当の最小差分を入れています。
+Slack user/channel/thread metadata と cron job metadata を plugin hook に渡すため、実行中の Hermes container では以下の最小差分を入れています。
+
+- `/opt/hermes/run_agent.py`: `hermes-langfuse-poc/runtime-overrides/patches/hermes-run-agent-hook-metadata.patch`
+- `/opt/hermes/cron/scheduler.py`: `hermes-langfuse-poc/runtime-overrides/patches/hermes-cron-scheduler-langfuse-metadata.patch`
 
 ## 停止
 
@@ -64,6 +67,8 @@ HermesAgent を Mac ホスト上で直接動かす場合だけ、`LANGFUSE_BASE_
 
 Slack 経由の turn では、Langfuse 標準の `user_id` に `slack:<team_id>:<slack_user_id>` を入れます。`team_id` が取れない場合は `slack:<slack_user_id>` です。trace metadata には、取得できる範囲で `slack_user_id`, `slack_user_name`, `slack_team_id`, `slack_channel_id`, `slack_channel_type`, `slack_thread_ts` を入れます。
 
+cron 実行の turn では、Langfuse 標準の `user_id` に `cron:<job_id>` を入れます。trace metadata には `cron_job_id`, `cron_job_name`, `cron_schedule`, `origin_platform`, `origin_chat_id`, `origin_thread_id` を入れます。cron は人間のSlackユーザーではなく scheduled actor として集計します。
+
 ## 確認
 
 1. `curl -fsS http://localhost:3000/api/public/ready` が `OK` を返す。
@@ -72,7 +77,8 @@ Slack 経由の turn では、Langfuse 標準の `user_id` に `slack:<team_id>:
 4. 数秒待って Langfuse の Traces で `hermes.turn` が 1 件以上見えることを確認する。
 5. trace の Input に user prompt、Output に最終 assistant response が入っていることを確認する。
 6. Slack 経由の turn では trace の User ID が `slack:...` になり、metadata に Slack user/channel/thread 情報があることを確認する。
-7. API key/password/token/private key、tool output 全文、ファイル内容が入っていないことを確認する。
+7. cron 実行の turn では trace の User ID が `cron:...` になり、metadata に cron job と origin 情報があることを確認する。
+8. API key/password/token/private key、tool output 全文、ファイル内容が入っていないことを確認する。
 
 画面の読み方は [langfuse-dashboard-guide.md](langfuse-dashboard-guide.md) にスクショ付きでまとめています。
 
@@ -97,6 +103,7 @@ cd /Users/tsubasaclone/workspace/langfuse
 - `LANGFUSE_CAPTURE_CONTENT=operational` では user prompt と最終 assistant response を trace Input/Output に送ります。
 - LLM generation には request summary、usage tokens、latency、finish reason を送ります。
 - Slack user identity は Langfuse の標準 `user_id` に入れ、Slack固有情報は trace metadata に入れます。
+- cron job identity は Langfuse の標準 `user_id` に `cron:<job_id>` として入れ、job name/schedule/origin は trace metadata に入れます。
 - email は redaction 対象外です。
 - API key/password/token/private key は redaction します。
 - tool args は内容系フィールドを省略して送ります。tool output 全文とファイル内容は送りません。

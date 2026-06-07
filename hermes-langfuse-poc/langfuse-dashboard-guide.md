@@ -46,7 +46,7 @@ Tracing は「1 user turn = 1 trace」を探すための一覧です。
 - **Name**: `hermes.turn` が HermesAgent の 1 turn です。
 - **Timestamp**: turn の開始時刻です。HermesAgent を動かした時刻と照合します。
 - **Input / Output**: 運用モードでは、Input に Slack/user prompt、Output に最終 assistant response が入ります。tool output 全文やファイル内容は引き続き送りません。
-- **User ID**: Slack 経由の turn では `slack:<team_id>:<slack_user_id>` です。`team_id` が取れない場合は `slack:<slack_user_id>` です。
+- **User ID**: Slack 経由の turn では `slack:<team_id>:<slack_user_id>` です。cron 実行の turn では `cron:<job_id>` です。
 - **左側 Filters**: `Trace Name`, `Session ID`, `Latency`, `Environment` で絞り込めます。
 
 よく使う見方:
@@ -86,6 +86,7 @@ Trace Detail は、1 turn の中で LLM call と tool call がどう並んだか
 - Input/Output が入っている: Slackからの依頼内容と最終応答を同じtrace上で確認できます。
 - tool observation のOutputが要約になっている: tool output全文やファイル内容は送っていないことを確認できます。
 - Metadata に `slack_user_id`, `slack_user_name`, `slack_channel_id`, `slack_channel_type`, `slack_thread_ts` がある: Slack のどのユーザー・チャンネル・スレッドから来た turn かを追えます。
+- Metadata に `cron_job_id`, `cron_job_name`, `cron_schedule`, `origin_platform`, `origin_chat_id`, `origin_thread_id` がある: どの cron job が、どの配信元/配信先文脈で動いたかを追えます。
 
 注意:
 
@@ -103,12 +104,12 @@ Sessions は `session_id` 単位で trace を束ねる画面です。
 - **Created At**: session の最初の trace 時刻です。
 - **Duration**: session 全体の継続時間です。
 - **Environment**: `local` や `default` など、送信元環境を分けるための値です。
-- **User IDs**: Slack 経由の turn では `slack:<team_id>:<slack_user_id>` が入ります。
+- **User IDs**: Slack 経由の turn では `slack:<team_id>:<slack_user_id>`、cron 実行の turn では `cron:<job_id>` が入ります。
 
 この画面で得られる示唆:
 
 - 長い Duration の session: 会話や定期実行が長く続いた可能性があります。
-- `cron_...` の session: 自動実行系の turn として分けて見られます。
+- `cron_...` の session: 自動実行系の turn として分けて見られます。User IDs の `cron:<job_id>` で同じjobの実行を追えます。
 - `20260606_...` の session: 手動・通常会話系の turn として追いやすくなります。
 
 ## 5. Users
@@ -119,13 +120,18 @@ Users は user_id を送っている場合に、ユーザー単位で trace、co
 
 Slack 経由の turn では、Langfuse 標準の `user_id` に `slack:<team_id>:<slack_user_id>` を送ります。Slack を複数人で同じ HermesAgent アカウントから使っていても、この画面では実際に話しかけた Slack ユーザー単位で分かれます。
 
+cron 実行の turn では `user_id` に `cron:<job_id>` を送ります。人間ではなく scheduled actor として見えるため、同じ定期jobの実行回数、latency、costをまとめて追えます。
+
 この画面で分かること:
 
 - どの Slack ユーザーが HermesAgent を多く使っているか。
+- どの cron job が HermesAgent を多く使っているか。
 - 特定ユーザーの session や trace をまとめて追えるか。
 - user 単位の cost や score を見られるか。
 
 Slack user name、channel id、thread ts は user_id の標準列ではなく、trace metadata に入ります。ユーザー一覧では `user_id` を起点に入り、個別 trace の Metadata で channel/thread を確認します。
+
+cron job name、schedule、origin platform/chat/thread も標準列ではなく、trace metadata に入ります。Usersでは `cron:<job_id>` を起点に入り、個別 trace の Metadata で job名や配信先を確認します。
 
 ## 現PoCで分かること
 
@@ -137,6 +143,8 @@ Slack user name、channel id、thread ts は user_id の標準列ではなく、
 - Slack/user prompt と最終 assistant response。
 - Slack user_id 別の利用状況。
 - Slack channel/thread metadata。
+- cron job 別の利用状況。
+- cron job name/schedule/origin metadata。
 - tool output全文やファイル内容を送っていないこと。
 
 ## 現PoCではまだ分からないこと
@@ -153,6 +161,7 @@ Slack user name、channel id、thread ts は user_id の標準列ではなく、
 3. Trace Detail の **Input / Output** に user prompt と最終 assistant response が入っている。
 4. Trace Detail の **Metadata** に `session_id`, `platform`, `provider`, `model` がある。
 5. Slack turn では Trace Detail の **Metadata** に `slack_user_id`, `slack_user_name`, `slack_channel_id`, `slack_thread_ts` がある。
-6. Trace Detail の左ペインに `llm.call` と `tool.*` が見える。
-7. Sessions に `session_id` と User IDs が並んでいる。
-8. tool output全文、ファイル内容、API key/password/token/private key が入っていない。
+6. cron turn では Trace Detail の **Metadata** に `cron_job_id`, `cron_job_name`, `cron_schedule`, `origin_platform`, `origin_chat_id`, `origin_thread_id` がある。
+7. Trace Detail の左ペインに `llm.call` と `tool.*` が見える。
+8. Sessions に `session_id` と User IDs が並んでいる。
+9. tool output全文、ファイル内容、API key/password/token/private key が入っていない。

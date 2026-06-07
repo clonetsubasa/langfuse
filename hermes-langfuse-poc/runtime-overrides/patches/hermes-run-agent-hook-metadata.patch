@@ -1,6 +1,6 @@
 --- /opt/hermes/run_agent.py.before
 +++ /opt/hermes/run_agent.py
-@@ -10928,6 +10928,11 @@
+@@ -10928,6 +10928,17 @@
                  model=self.model,
                  platform=getattr(self, "platform", None) or "",
                  sender_id=getattr(self, "_user_id", None) or "",
@@ -9,10 +9,16 @@
 +                chat_name=getattr(self, "_chat_name", None) or "",
 +                chat_type=getattr(self, "_chat_type", None) or "",
 +                thread_id=getattr(self, "_thread_id", None) or "",
++                cron_job_id=getattr(self, "_cron_job_id", None) or "",
++                cron_job_name=getattr(self, "_cron_job_name", None) or "",
++                cron_schedule=getattr(self, "_cron_schedule", None) or "",
++                origin_platform=getattr(self, "_origin_platform", None) or "",
++                origin_chat_id=getattr(self, "_origin_chat_id", None) or "",
++                origin_thread_id=getattr(self, "_origin_thread_id", None) or "",
              )
              _ctx_parts: list[str] = []
              for r in _pre_results:
-@@ -11375,6 +11380,12 @@
+@@ -11375,6 +11386,18 @@
                              base_url=self.base_url,
                              api_mode=self.api_mode,
                              api_call_count=api_call_count,
@@ -22,10 +28,16 @@
 +                            chat_name=getattr(self, "_chat_name", None) or "",
 +                            chat_type=getattr(self, "_chat_type", None) or "",
 +                            thread_id=getattr(self, "_thread_id", None) or "",
++                            cron_job_id=getattr(self, "_cron_job_id", None) or "",
++                            cron_job_name=getattr(self, "_cron_job_name", None) or "",
++                            cron_schedule=getattr(self, "_cron_schedule", None) or "",
++                            origin_platform=getattr(self, "_origin_platform", None) or "",
++                            origin_chat_id=getattr(self, "_origin_chat_id", None) or "",
++                            origin_thread_id=getattr(self, "_origin_thread_id", None) or "",
                              message_count=len(api_messages),
                              tool_count=len(self.tools or []),
                              approx_input_tokens=approx_tokens,
-@@ -13180,6 +13191,12 @@
+@@ -13180,6 +13203,18 @@
                          api_mode=self.api_mode,
                          api_call_count=api_call_count,
                          api_duration=api_duration,
@@ -35,10 +47,16 @@
 +                        chat_name=getattr(self, "_chat_name", None) or "",
 +                        chat_type=getattr(self, "_chat_type", None) or "",
 +                        thread_id=getattr(self, "_thread_id", None) or "",
++                        cron_job_id=getattr(self, "_cron_job_id", None) or "",
++                        cron_job_name=getattr(self, "_cron_job_name", None) or "",
++                        cron_schedule=getattr(self, "_cron_schedule", None) or "",
++                        origin_platform=getattr(self, "_origin_platform", None) or "",
++                        origin_chat_id=getattr(self, "_origin_chat_id", None) or "",
++                        origin_thread_id=getattr(self, "_origin_thread_id", None) or "",
                          finish_reason=finish_reason,
                          message_count=len(api_messages),
                          response_model=getattr(response, "model", None),
-@@ -14086,6 +14103,12 @@
+@@ -14086,6 +14121,18 @@
                      conversation_history=list(messages),
                      model=self.model,
                      platform=getattr(self, "platform", None) or "",
@@ -48,6 +66,12 @@
 +                    chat_name=getattr(self, "_chat_name", None) or "",
 +                    chat_type=getattr(self, "_chat_type", None) or "",
 +                    thread_id=getattr(self, "_thread_id", None) or "",
++                    cron_job_id=getattr(self, "_cron_job_id", None) or "",
++                    cron_job_name=getattr(self, "_cron_job_name", None) or "",
++                    cron_schedule=getattr(self, "_cron_schedule", None) or "",
++                    origin_platform=getattr(self, "_origin_platform", None) or "",
++                    origin_chat_id=getattr(self, "_origin_chat_id", None) or "",
++                    origin_thread_id=getattr(self, "_origin_thread_id", None) or "",
                  )
              except Exception as exc:
                  logger.warning("post_llm_call hook failed: %s", exc)

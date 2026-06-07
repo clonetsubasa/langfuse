@@ -139,9 +139,24 @@ def _clean_attr(value: Any, *, max_chars: int = 200) -> str:
     return text[:max_chars]
 
 
+def _clean_metadata_attr(value: Any, *, max_chars: int = 500) -> str:
+    text = str(value or "").strip()
+    if not text:
+        return ""
+    return _safe_text(text, max_chars=max_chars)
+
+
 def _first_attr(kwargs: dict[str, Any], *names: str) -> str:
     for name in names:
         value = _clean_attr(kwargs.get(name))
+        if value:
+            return value
+    return ""
+
+
+def _first_metadata_attr(kwargs: dict[str, Any], *names: str) -> str:
+    for name in names:
+        value = _clean_metadata_attr(kwargs.get(name))
         if value:
             return value
     return ""
@@ -163,6 +178,8 @@ def _langfuse_user_id(platform: str, raw_user_id: str, team_id: str = "") -> str
         return ""
     if platform == "slack":
         return f"slack:{team_id}:{raw_user_id}" if team_id else f"slack:{raw_user_id}"
+    if platform == "cron":
+        return raw_user_id if raw_user_id.startswith("cron:") else f"cron:{raw_user_id}"
     return f"{platform}:{raw_user_id}" if platform else raw_user_id
 
 
@@ -170,18 +187,26 @@ def _collect_user_attrs(**kwargs: Any) -> dict[str, str]:
     platform = _first_attr(kwargs, "platform")
     raw_user_id = _first_attr(
         kwargs,
+        "cron_job_id",
         "sender_id",
         "user_id",
         "slack_user_id",
         "slack_sender_id",
     )
     team_id = _first_attr(kwargs, "slack_team_id", "team_id", "workspace_id")
-    user_name = _first_attr(
+    user_name = _first_metadata_attr(
         kwargs,
+        "cron_job_name",
         "sender_name",
         "user_name",
         "slack_user_name",
         "slack_sender_name",
+    )
+    cron_schedule = _first_metadata_attr(
+        kwargs,
+        "cron_schedule",
+        "schedule_display",
+        "schedule",
     )
     channel_id = _first_attr(
         kwargs,
@@ -201,11 +226,27 @@ def _collect_user_attrs(**kwargs: Any) -> dict[str, str]:
         "thread_ts",
         "thread_id",
     )
+    origin_platform = _first_attr(kwargs, "origin_platform")
+    origin_chat_id = _first_attr(kwargs, "origin_chat_id")
+    origin_thread_id = _first_attr(kwargs, "origin_thread_id")
     attrs: dict[str, str] = {}
     langfuse_user_id = _langfuse_user_id(platform, raw_user_id, team_id)
     if langfuse_user_id:
         attrs["langfuse_user_id"] = langfuse_user_id
-    if platform == "slack":
+    if platform == "cron":
+        if raw_user_id:
+            attrs["cron_job_id"] = raw_user_id
+        if user_name:
+            attrs["cron_job_name"] = user_name
+        if cron_schedule:
+            attrs["cron_schedule"] = cron_schedule
+        if origin_platform:
+            attrs["origin_platform"] = origin_platform
+        if origin_chat_id:
+            attrs["origin_chat_id"] = origin_chat_id
+        if origin_thread_id:
+            attrs["origin_thread_id"] = origin_thread_id
+    elif platform == "slack":
         if raw_user_id:
             attrs["slack_user_id"] = raw_user_id
         if user_name:

@@ -1,0 +1,24 @@
+--- /opt/hermes/cron/scheduler.py.before
++++ /opt/hermes/cron/scheduler.py
+@@ -1283,9 +1283,21 @@
+             load_soul_identity=True,
+             skip_memory=True,  # Cron system prompts would corrupt user representations
+             platform="cron",
++            user_id=str(job_id),
++            user_name=job_name,
++            chat_id=str(origin["chat_id"]) if origin else "",
++            chat_name=origin.get("chat_name", "") if origin else "",
++            chat_type=origin["platform"] if origin else "",
++            thread_id=str(origin.get("thread_id") or "") if origin else "",
+             session_id=_cron_session_id,
+             session_db=_session_db,
+         )
++        agent._cron_job_id = str(job_id)
++        agent._cron_job_name = str(job_name)
++        agent._cron_schedule = str(job.get("schedule_display") or job.get("schedule") or "")
++        agent._origin_platform = origin["platform"] if origin else ""
++        agent._origin_chat_id = str(origin["chat_id"]) if origin else ""
++        agent._origin_thread_id = str(origin.get("thread_id") or "") if origin else ""
+
+         # Run the agent with an *inactivity*-based timeout: the job can run
+         # for hours if it's actively calling tools / receiving stream tokens,
