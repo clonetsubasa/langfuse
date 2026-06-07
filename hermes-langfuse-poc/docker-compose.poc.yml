@@ -1,0 +1,9 @@
+services:
+  langfuse-web:
+    ports: !override
+      - 127.0.0.1:3000:3000
+
+  minio:
+    ports: !override
+      - 127.0.0.1:9090:9000
+      - 127.0.0.1:9091:9001

@@ -1,0 +1,53 @@
+--- /opt/hermes/run_agent.py.before
++++ /opt/hermes/run_agent.py
+@@ -10928,6 +10928,11 @@
+                 model=self.model,
+                 platform=getattr(self, "platform", None) or "",
+                 sender_id=getattr(self, "_user_id", None) or "",
++                sender_name=getattr(self, "_user_name", None) or "",
++                chat_id=getattr(self, "_chat_id", None) or "",
++                chat_name=getattr(self, "_chat_name", None) or "",
++                chat_type=getattr(self, "_chat_type", None) or "",
++                thread_id=getattr(self, "_thread_id", None) or "",
+             )
+             _ctx_parts: list[str] = []
+             for r in _pre_results:
+@@ -11375,6 +11380,12 @@
+                             base_url=self.base_url,
+                             api_mode=self.api_mode,
+                             api_call_count=api_call_count,
++                            sender_id=getattr(self, "_user_id", None) or "",
++                            sender_name=getattr(self, "_user_name", None) or "",
++                            chat_id=getattr(self, "_chat_id", None) or "",
++                            chat_name=getattr(self, "_chat_name", None) or "",
++                            chat_type=getattr(self, "_chat_type", None) or "",
++                            thread_id=getattr(self, "_thread_id", None) or "",
+                             message_count=len(api_messages),
+                             tool_count=len(self.tools or []),
+                             approx_input_tokens=approx_tokens,
+@@ -13180,6 +13191,12 @@
+                         api_mode=self.api_mode,
+                         api_call_count=api_call_count,
+                         api_duration=api_duration,
++                        sender_id=getattr(self, "_user_id", None) or "",
++                        sender_name=getattr(self, "_user_name", None) or "",
++                        chat_id=getattr(self, "_chat_id", None) or "",
++                        chat_name=getattr(self, "_chat_name", None) or "",
++                        chat_type=getattr(self, "_chat_type", None) or "",
++                        thread_id=getattr(self, "_thread_id", None) or "",
+                         finish_reason=finish_reason,
+                         message_count=len(api_messages),
+                         response_model=getattr(response, "model", None),
+@@ -14086,6 +14103,12 @@
+                     conversation_history=list(messages),
+                     model=self.model,
+                     platform=getattr(self, "platform", None) or "",
++                    sender_id=getattr(self, "_user_id", None) or "",
++                    sender_name=getattr(self, "_user_name", None) or "",
++                    chat_id=getattr(self, "_chat_id", None) or "",
++                    chat_name=getattr(self, "_chat_name", None) or "",
++                    chat_type=getattr(self, "_chat_type", None) or "",
++                    thread_id=getattr(self, "_thread_id", None) or "",
+                 )
+             except Exception as exc:
+                 logger.warning("post_llm_call hook failed: %s", exc)

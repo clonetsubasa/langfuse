@@ -1,0 +1,14 @@
+name: langfuse
+version: "1.0.0-hermes-local-poc"
+description: "Local PoC Langfuse tracing for Hermes turns with operational prompt/output capture and summarized tool metadata."
+author: Local PoC
+requires_env:
+  - LANGFUSE_PUBLIC_KEY
+  - LANGFUSE_SECRET_KEY
+hooks:
+  - pre_api_request
+  - post_api_request
+  - pre_llm_call
+  - post_llm_call
+  - pre_tool_call
+  - post_tool_call
